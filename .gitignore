@@ -4,6 +4,7 @@ a9a.tr
 fourclass_scale.te
 fourclass_scale.tr
 fourclass_scale.va
+data/*
 
 #exe
 *.mexa64
@@ -13,3 +14,6 @@ fourclass_scale.va
 *.swp
 tags
 *.log
+
+#Old folder
+libfm-als/*

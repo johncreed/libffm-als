@@ -6,7 +6,7 @@
 
 #include "mex.h"
 
-#define DEBUG
+//#define DEBUG
 
 #ifdef MX_API_VER
 #if MX_API_VER < 0x07030000
@@ -69,7 +69,7 @@ mxArray* invert_sparse_matrix(mxArray *mx){
 
 
 // read in a problem (in libsvm format)
-void read_problem(const char *filename, int nlhs, mxArray *plhs[])
+bool read_problem(const char *filename, int nlhs, mxArray *plhs[])
 {
 	size_t f=0, l=0;
 	size_t* nnzs;
@@ -91,7 +91,7 @@ void read_problem(const char *filename, int nlhs, mxArray *plhs[])
 		char *field, *idx, *val;
 		size_t f_val, idx_val; 
 #ifdef DEBUG
-		mexPrintf("line: %s", line);
+		//mexPrintf("line: %s", line);
 #endif
 		strtok(line, " \t"); // Skip label
 		while(1){
@@ -105,7 +105,7 @@ void read_problem(const char *filename, int nlhs, mxArray *plhs[])
 			f_val = (size_t) strtol(field, &endptr, 10);
 			idx_val = (int) strtol(idx, &endptr, 10);
 #ifdef DEBUG
-			mexPrintf("f_val %d, idx_val %d\n", f_val, idx_val);
+			//mexPrintf("f_val %d, idx_val %d\n", f_val, idx_val);
 #endif
 			
 			f = max(f, f_val + 1);
@@ -195,6 +195,8 @@ void read_problem(const char *filename, int nlhs, mxArray *plhs[])
 		sp_m[i] = invert_sparse_matrix(sp_m[i]);
 		mxSetCell(plhs[1], mxCalcSingleSubscript(plhs[1], 2, loc), sp_m[i]);
 	}
+
+	return false;
 }
 
 void mexFunction( int nlhs, mxArray *plhs[],
@@ -220,7 +222,10 @@ void mexFunction( int nlhs, mxArray *plhs[],
 #ifdef DEBUG
 	mexPrintf("Start Read.\n");
 #endif
-	read_problem(filename, nlhs, plhs);
+	if(read_problem(filename, nlhs, plhs)){
+		mexPrintf("Read failed and return fake_ans.\n");
+		fake_answer(2, plhs);
+	}
 
 	return;
 }
