@@ -6,7 +6,10 @@ fourclass_scale.tr
 fourclass_scale.va
 
 #exe
-libsvmread.mexa64
+*.mexa64
 
 #
 .nfs*
+*.swp
+tags
+*.log
