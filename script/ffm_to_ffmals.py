@@ -27,14 +27,19 @@ def convert_line(line):
         res_list.append("{}:{}:{}".format(field, idx_cvt, val))
     return " ".join(res_list) + "\n"
 
+def sort_dict_and_print(src_dict):
+    a = list(src_dict.items())
+    print(sorted(a, key = lambda tup: int(tup[0])))
+
 def convert(filename):
-    rf = open("data.t3.tr", 'r')
+    rf = open(filename, 'r')
     of = open(filename+".cvt", 'w')
     for line in rf:
         line_cvt = convert_line(line)
         of.write(line_cvt)
-    print(idx_cnt)
+    sort_dict_and_print(idx_cnt)
 
 if __name__ == '__main__':
-    convert("data.t3.tr")
+    convert("criteo.tr.ffm")
+    convert("criteo.te.ffm")
 
