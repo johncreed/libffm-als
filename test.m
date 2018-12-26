@@ -9,8 +9,8 @@ epsilon = 0.01; do_pcond = false; sub_rate = 0.1;
 
 fprintf('Start parse.\n');
 % prepare training and test data sets
-[y,X] = libffmread('data.t3.tr.cvt');
-[y_test,X_test] = libffmread('data.t3.te.cvt');
+[y,X] = libffmread('fourclass_scale.tr.cvt');
+[y_test,X_test] = libffmread('fourclass_scale.te.cvt');
 
 fprintf('End parse.\n');
 

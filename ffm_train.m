@@ -59,7 +59,7 @@ function [W,H] = fm_train(y, X, f, lambda, d, epsilon, do_pcond, sub_rate)
 		if (G_norm <= epsilon*G_norm_0)
 			break;
 		end
-		fprintf('%4d  %11.3f  %14.6f  %14.6f\n', k, toc, func, G_norm);
+		fprintf('%4d	%11.3f	  %14.6f	  %14.6f\n', k, toc, func, G_norm);
 		if (k == max_iter)
 			fprintf('Warning: reach max training iteration. Terminate training process.\n');
 		end
@@ -81,7 +81,7 @@ function [U, y_tilde, expyy, f, loss, nt_iters, G_norm, total_cg_iters] = update
 	total_cg_iters = 0;
 	nt_iters = 0;
 	for k = 1:max_nt_iter
-		G = lambda*U+0.5*Q*sparse([1:l], [1:l], -y./(1+expyy))*X;
+		G = lambda*U+Q*sparse([1:l], [1:l], -y./(1+expyy))*X;
 		G_norm = sqrt(sum(sum(G.*G)));
 		if (k == 1)
 			G0_norm = G_norm;
@@ -96,7 +96,7 @@ function [U, y_tilde, expyy, f, loss, nt_iters, G_norm, total_cg_iters] = update
 		D = sparse([1:l], [1:l], expyy./(1+expyy)./(1+expyy));
 		[S, cg_iters] = pcg(X, Q, G, D, lambda, do_pcond, sub_rate);
 		total_cg_iters = total_cg_iters+cg_iters;
-		Delta = 0.5*(sum(Q'.*(X*S'),2));
+		Delta = (sum(Q'.*(X*S'),2));
 		US = sum(sum(U.*S)); SS = sum(sum(S.*S)); GS = sum(sum(G.*S));
 		theta = 1;
 		while (true)
@@ -117,6 +117,7 @@ function [U, y_tilde, expyy, f, loss, nt_iters, G_norm, total_cg_iters] = update
 				break;
 			end
 			theta = theta*0.5;
+			fprintf('line search theta %14.6f\n', theta);
 		end
 	end
 end
