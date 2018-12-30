@@ -1,4 +1,4 @@
-function [W,H] = ffm_train(y, X, f, lambda, d, epsilon, do_pcond, sub_rate)
+function [W,H] = ffm_train(y, X, f, lambda, d, epsilon, do_pcond, sub_rate, y_test, X_test)
 % Inputs:V
 %	y: training labels, an l-dimensional binary vector. Each element should be either +1 or -1.
 %	X: training instances. X is an l-by-n matrix if you have l training instances in an n-dimensional feature space.
@@ -11,7 +11,7 @@ function [W,H] = ffm_train(y, X, f, lambda, d, epsilon, do_pcond, sub_rate)
 % Outputs:
 %	W: colection of (Dfi-by-l) matrices.
 	tic;
-	max_iter = 4;
+	max_iter = 1000;
 	%num of instances
 	l = size(X{1}, 1);
 	%Init models
@@ -68,6 +68,12 @@ function [W,H] = ffm_train(y, X, f, lambda, d, epsilon, do_pcond, sub_rate)
 		fprintf('iter %4d	%11.3f	  %14.6f	  %14.6f\n', k, toc, func, G_norm);
 		if (k == max_iter)
 			fprintf('Warning: reach max training iteration. Terminate training process.\n');
+		end
+		if (mod(k, 5) == 1)
+			y_tilde_t = ffm_predict(X_test, f, W, H);
+			expyy_t = exp(y_test.*y_tilde_t);
+			loss_t = sum(log1p(1./expyy_t)) / size(X_test{1},1);
+			display(sprintf('iter: %4d logloss: %f', k,loss_t));
 		end
 	end
 end

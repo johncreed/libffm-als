@@ -29,7 +29,7 @@ for f_i = 1:f
 end
 % learn an FM model
 fprintf('Start train.\n');
-[W,H] = ffm_train(y, X, f, lambda, d, epsilon, do_pcond, sub_rate);
+[W,H] = ffm_train(y, X, f, lambda, d, epsilon, do_pcond, sub_rate, y_test, X_test);
 fprintf('End train.\n');
 
 % do prediction
