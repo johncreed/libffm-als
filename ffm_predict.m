@@ -1,17 +1,17 @@
-function y_tilde = fm_predict(X, f, W, H)
+function y_tilde = ffm_predict(X, f, W, H)
 % Predict the input instances.
-% function y_tilde = fm_predict(X, w, U, V)
+% function y_tilde = fm_predict(X, f, U, V)
 % Inputs:
 %   X: training instances. X is an l-by-n matrix if you have l training instances in a n-dimensional feature space.
-%   w: linear coefficients. An n-dimensional vector.
+%   f: number of field.
 %   U, V: the interaction (d-by-n) matrices.
 % Output:
 %   y_tilde: prediction values of the input instances, an l-dimensional column vector.
-	y_tilde = zeros(size(X{1},2), 1); 
+	y_tilde = zeros(size(X{1},1), 1); 
 	for fi = 1:f
 		for fj = fi:f
 			[idx] = index_cvt(fi, fj, f);
-			y_tilde = (sum((W{idx}*X{fi}').*(H{idx}*X{fj}'),1))';
+			y_tilde = y_tilde + sum((W{idx}*X{fi}').*(H{idx}*X{fj}'),1)';
 		end
 	end
 end

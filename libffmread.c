@@ -102,7 +102,9 @@ bool read_problem(const char *filename, int nlhs, mxArray *plhs[])
 				break;
 
 			errno = 0;
-			f_val = (size_t) strtol(field, &endptr, 10);
+			f_val = (size_t) strtol(field, &endptr, 10) - 1;
+			if(f_val < 0)
+				mexPrintf("Wrong field\n");
 			idx_val = (int) strtol(idx, &endptr, 10);
 #ifdef DEBUG
 			//mexPrintf("f_val %d, idx_val %d\n", f_val, idx_val);
@@ -110,10 +112,11 @@ bool read_problem(const char *filename, int nlhs, mxArray *plhs[])
 			
 			f = max(f, f_val + 1);
 			if(f > max_f){
-				max_f *= 2;
+				size_t max_f_orig = max_f;
+				max_f = f * 2;
 				nnzs = (size_t *) realloc(nnzs, max_f * sizeof(size_t));
 				max_indexs = (int *) realloc(max_indexs, max_f * sizeof(int));
-				for(int i = max_f / 2; i < max_f; i++){
+				for(int i = max_f_orig; i < max_f; i++){
 					nnzs[i] = 0;
 					max_indexs[i] = -1;
 				}
@@ -174,13 +177,13 @@ bool read_problem(const char *filename, int nlhs, mxArray *plhs[])
 			if(val == NULL)
 				break;
 			
-			f_val = (size_t) strtol(field, &endptr, 10);
-			idx_val = (size_t) strtol(idx, &endptr, 10);
-			val_val = (size_t) strtod(val, &endptr);
+			f_val = (size_t) strtol(field, &endptr, 10) - 1;
+			idx_val =  strtol(idx, &endptr, 10);
+			val_val =  strtod(val, &endptr);
 
 			size_t nnz_count = nnz_counts[f_val];
 			ir[f_val][nnz_count] = (mwIndex) idx_val;
-			values[f_val][nnz_count] = strtod(val,&endptr);
+			values[f_val][nnz_count] = val_val;
 			++nnz_counts[f_val];
 		}
 	}
