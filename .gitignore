@@ -1,10 +1,8 @@
 #Data 
-a9a.te
-a9a.tr
-fourclass_scale.te
-fourclass_scale.tr
-fourclass_scale.va
+a9a*
+fourclass_scale*
 data/*
+avazu*
 
 #exe
 *.mexa64
@@ -14,5 +12,6 @@ data/*
 *.swp
 tags
 *.log
+*tmp*
 
 #Old folder
