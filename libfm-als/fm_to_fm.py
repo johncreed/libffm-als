@@ -1,0 +1,48 @@
+#! /usr/bin/python3
+
+idx_cnt = {}
+idx_map = {}
+
+def convert_idx(field, idx, val):
+    key = tuple([field, idx])
+    if key not in idx_map:
+        if field in idx_cnt:
+            idx_cnt[field] += 1
+            idx_map[key] = idx_cnt[field]
+        else:
+            idx_cnt[field] = 0
+            idx_map[key] = idx_cnt[field]
+    return idx_map[key]
+
+def convert_line(line):
+    toks  = line.strip().split()
+    label = toks[0]
+    res_list = [label]
+    for tk in toks[1:]:
+        tk_toks = tk.strip().split(":")
+        field = '0'
+        idx = tk_toks[0]
+        val = tk_toks[1]
+        idx_cvt = convert_idx(field, idx, val)
+        res_list.append("{}:{}".format(idx_cvt, val))
+    res_list[1:] = sorted(res_list[1:], key = lambda s: int(s.split(':')[0]))
+    return " ".join(res_list) + "\n"
+
+def sort_dict_and_print(src_dict):
+    a = list(src_dict.items())
+    print(sorted(a, key = lambda tup: int(tup[0])))
+
+def convert(filename):
+    rf = open(filename, 'r')
+    of = open(filename+".cvt", 'w')
+    for line in rf:
+        line_cvt = convert_line(line)
+        of.write(line_cvt)
+    sort_dict_and_print(idx_cnt)
+
+if __name__ == '__main__':
+    #convert("fourclass_scale.tr")
+    #convert("fourclass_scale.te")
+    convert("a9a.tr")
+    convert("a9a.te")
+
