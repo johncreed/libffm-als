@@ -1,9 +1,16 @@
 #!/bin/bash
 lambda_list=(4)
 d=8
+# Data 
+
 data='avazu-app'
 tr='avazu-app.grid.tr.ffm.fm.cvt'
 te='avazu-app.grid.va.ffm.fm.cvt'
+
+#data='a9a'
+#tr='a9a.tr.cvt'
+#te='a9a.te.cvt'
+
 
 logs_pth="logs/${data}"
 

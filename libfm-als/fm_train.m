@@ -102,7 +102,7 @@ end
 
 % See Algorithm 4 in the paper.
 function [S, cg_iters] = pcg(X, Q, G, D, lambda, do_pcond, sub_rate)
-    zeta = 0.1;
+    zeta = 0.5;
     cg_max_iter = 100;
     if (sub_rate < 1)
         l = size(X,1);

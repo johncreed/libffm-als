@@ -6,7 +6,7 @@ make;
 lambda_U = lambda; lambda_V = lambda; lambda_w = 0.0625;
 
 % set training algorithm's parameters
-epsilon = 0.01; do_pcond = false; sub_rate = 1;
+epsilon = 0.0001; do_pcond = false; sub_rate = 1;
 
 % prepare training and test data sets
 [y,X] = libsvmread(tr);
