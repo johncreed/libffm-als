@@ -40,6 +40,6 @@ def convert(filename):
     sort_dict_and_print(idx_cnt)
 
 if __name__ == '__main__':
-    convert("criteo.tr.ffm")
-    convert("criteo.te.ffm")
+    convert("avazu-app.tr.ffm")
+    convert("avazu-app.te.ffm")
 
