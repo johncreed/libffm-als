@@ -1,4 +1,4 @@
-function [W,H] = fm_train(y, X, f, lambda, d, epsilon, do_pcond, sub_rate)
+function [W,H] = ffm_train(y, X, f, lambda, d, epsilon, do_pcond, sub_rate, y_test, X_test)
 % Inputs:V
 %	y: training labels, an l-dimensional binary vector. Each element should be either +1 or -1.
 %	X: training instances. X is an l-by-n matrix if you have l training instances in an n-dimensional feature space.
@@ -40,7 +40,8 @@ function [W,H] = fm_train(y, X, f, lambda, d, epsilon, do_pcond, sub_rate)
 			func = func + 0.5 * lambda * (sum(sum(H{idx}.*H{idx})));
 		end
 	end
-    G_norm_0 = 0;
+	fprintf('time: %11.3f func: %14.6f\n', toc, func);
+	G_norm_0 = 0;
 	fprintf('iter		 time			   obj			|grad\n');
 	for k = 1:max_iter
 		G_norm = 0;
@@ -48,10 +49,13 @@ function [W,H] = fm_train(y, X, f, lambda, d, epsilon, do_pcond, sub_rate)
 			for fj = fi:f
 				[idx] = index_cvt(fi,fj,f);
 				[W{idx}, y_tilde, expyy, func, loss, nt_iters_W, G_norm_W, cg_iters_W] = update_block(y, X{fi}, W{idx}, H{idx}*X{fj}', y_tilde, expyy, func, loss, lambda, do_pcond, sub_rate);
+				fprintf('W(fi,fj) : %4d, %4d time: %11.4f func: %11.3f\n', fi, fj, toc,func);
 				[H{idx}, y_tilde, expyy, func, loss, nt_iters_H, G_norm_H, cg_iters_H] = update_block(y, X{fj}, H{idx}, W{idx}*X{fi}', y_tilde, expyy, func, loss, lambda, do_pcond, sub_rate);
-				G_norm = G_norm + norm([G_norm_W, G_norm_H]);
+				G_norm = G_norm + sum(sum(G_norm_W.*G_norm_W)) + sum(sum(G_norm_H.*G_norm_H));
+				fprintf('H(fi,fj) : %4d, %4d time: %11.4f func: %11.3f\n', fi, fj, toc,func);
 			end
 		end
+		G_norm = sqrt(G_norm);
 
 		if (k == 1)
 			G_norm_0 = G_norm;
@@ -59,9 +63,15 @@ function [W,H] = fm_train(y, X, f, lambda, d, epsilon, do_pcond, sub_rate)
 		if (G_norm <= epsilon*G_norm_0)
 			break;
 		end
-		fprintf('%4d	%11.3f	  %14.6f	  %14.6f\n', k, toc, func, G_norm);
+		fprintf('iter %4d	%11.3f	  %14.6f	  %14.6f\n', k, toc, func, G_norm);
 		if (k == max_iter)
 			fprintf('Warning: reach max training iteration. Terminate training process.\n');
+		end
+		if ( mod(k, 10) == 1)
+			y_tilde = ffm_predict(X_test, f, W, H);
+			expyy = exp(y_test.*y_tilde);
+			loss = sum(log1p(1./expyy)) / size(X_test{1},1);
+			display(sprintf('iter %d logloss: %f', k,loss));
 		end
 	end
 end
@@ -74,7 +84,7 @@ end
 function [U, y_tilde, expyy, f, loss, nt_iters, G_norm, total_cg_iters] = update_block(y, X, U, Q, y_tilde, expyy, f, loss, lambda, do_pcond, sub_rate)
 	epsilon = 0.8;
 	nu = 0.1;
-	max_nt_iter = 100;
+	max_nt_iter = 1;
 	min_step_size = 1e-20;
 	l = size(X,1);
 	G0_norm = 0;
@@ -91,7 +101,7 @@ function [U, y_tilde, expyy, f, loss, nt_iters, G_norm, total_cg_iters] = update
 		end
 		nt_iters = k;
 		if (k == max_nt_iter)
-			fprintf('Warning: reach newton iteration bound before gradient norm is shrinked enough.\n');
+			%fprintf('Warning: reach newton iteration bound before gradient norm is shrinked enough.\n');
 		end
 		D = sparse([1:l], [1:l], expyy./(1+expyy)./(1+expyy));
 		[S, cg_iters] = pcg(X, Q, G, D, lambda, do_pcond, sub_rate);
@@ -99,9 +109,12 @@ function [U, y_tilde, expyy, f, loss, nt_iters, G_norm, total_cg_iters] = update
 		Delta = (sum(Q'.*(X*S'),2));
 		US = sum(sum(U.*S)); SS = sum(sum(S.*S)); GS = sum(sum(G.*S));
 		theta = 1;
+		do_line_search = false;
+		fprintf('Start line search time: %11.4f\n', toc);
 		while (true)
 			if (theta < min_step_size)
 				fprintf('Warning: step size is too small in line search. Switch to the next block of variables.\n');
+				fprintf('Finish line search time: %11.4f\n', toc);
 				return;
 			end
 			y_tilde_new = y_tilde+theta*Delta;
@@ -117,14 +130,19 @@ function [U, y_tilde, expyy, f, loss, nt_iters, G_norm, total_cg_iters] = update
 				break;
 			end
 			theta = theta*0.5;
-			fprintf('line search theta %14.6f\n', theta);
+			do_line_search = true;
+		end
+		fprintf('Finish line search time: %11.4f\n', toc);
+		if( do_line_search )
+			fprintf('Do line search, theta: %14.6f\n', theta);
 		end
 	end
 end
 
 % See Algorithm 4 in the paper.
 function [S, cg_iters] = pcg(X, Q, G, D, lambda, do_pcond, sub_rate)
-	zeta = 0.3;
+	fprintf('Start cg time: %11.4f\n', toc);
+	zeta = 0.5;
 	cg_max_iter = 100;
 	if (sub_rate < 1)
 		l = size(X,1);
@@ -148,8 +166,8 @@ function [S, cg_iters] = pcg(X, Q, G, D, lambda, do_pcond, sub_rate)
 	while (gamma > zeta*zeta*G0G0)
 		cg_iters = cg_iters+1;
 		Dh = M.*d;
-		z = 0.5*sum(Q'.*(X*Dh'),2);
-		Dh = M.*(lambda*Dh+0.5*(1/sub_rate)*Q*sparse([1:l], [1:l], D*z)*X);
+		z = sum(Q'.*(X*Dh'),2);
+		Dh = M.*(lambda*Dh+(1/sub_rate)*Q*sparse([1:l], [1:l], D*z)*X);
 		alpha = gamma/sum(sum(d.*Dh));
 		s_bar = s_bar+alpha*d;
 		r = r-alpha*Dh;
@@ -163,4 +181,5 @@ function [S, cg_iters] = pcg(X, Q, G, D, lambda, do_pcond, sub_rate)
 		end
 	end
 	S = M.*s_bar;
+	fprintf('Finish cg time: %11.4f\n', toc);
 end

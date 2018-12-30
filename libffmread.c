@@ -162,6 +162,10 @@ bool read_problem(const char *filename, int nlhs, mxArray *plhs[])
 		readline(fp);
 		label = strtok(line," \t\n");
 		labels[i] = strtod(label,&endptr);
+		if (labels[i] > 0)
+			labels[i] = 1;
+		else
+			labels[i] = -1;
 		while(1)
 		{
 			field = strtok(NULL,":");
@@ -196,6 +200,10 @@ bool read_problem(const char *filename, int nlhs, mxArray *plhs[])
 		mxSetCell(plhs[1], mxCalcSingleSubscript(plhs[1], 2, loc), sp_m[i]);
 	}
 
+	fclose(fp);
+	free(nnzs);
+	free(max_indexs);
+	free(line);
 	return false;
 }
 
@@ -210,9 +218,9 @@ void mexFunction( int nlhs, mxArray *plhs[],
 		fake_answer(nlhs, plhs);
 		return;
 	}
-
+	
 	mxGetString(prhs[0], filename, mxGetN(prhs[0]) + 1);
-
+	
 	if(filename == NULL)
 	{
 		mexPrintf("Error: filename is NULL\n");

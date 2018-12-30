@@ -1,4 +1,4 @@
-function y_tilde = fm_predict(X, w, U, V)
+function y_tilde = fm_predict(X, U, V)
 % Predict the input instances.
 % function y_tilde = fm_predict(X, w, U, V)
 % Inputs:
@@ -7,5 +7,5 @@ function y_tilde = fm_predict(X, w, U, V)
 %   U, V: the interaction (d-by-n) matrices.
 % Output:
 %   y_tilde: prediction values of the input instances, an l-dimensional column vector.
-    y_tilde = X*w'+0.5*(sum((U*X').*(V*X'),1))';
+    y_tilde = (sum((U*X').*(V*X'),1))';
 end

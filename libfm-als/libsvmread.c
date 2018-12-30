@@ -139,6 +139,10 @@ void read_problem(const char *filename, int nlhs, mxArray *plhs[])
 			return;
 		}
 		labels[i] = strtod(label,&endptr);
+		if (labels[i] > 0)
+			labels[i] = 1;
+		else
+			labels[i] = -1;
 		if(endptr == label || *endptr != '\0')
 		{
 			mexPrintf("Wrong input format at line %d\n",i+1);
