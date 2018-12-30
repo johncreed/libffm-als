@@ -15,7 +15,7 @@ function [U, V] = fm_train(y, X, lambda_w, lambda_U, lambda_V, d, epsilon, do_pc
 %   w: linear coefficients. An n-dimensional vector.
 %   U, V: the interaction (d-by-n) matrices.
     tic;
-    max_iter = 1000;
+    max_iter = 4;
     [l, n] = size(X);
     rand('seed', 0);
     U = 2*(0.1/sqrt(d))*(rand(d,n)-0.5);
@@ -24,6 +24,7 @@ function [U, V] = fm_train(y, X, lambda_w, lambda_U, lambda_V, d, epsilon, do_pc
     expyy = exp(y.*y_tilde);
     loss = sum(log1p(1./expyy));
     f = 0.5*(lambda_U*sum(sum(U.*U))+lambda_V*sum(sum(V.*V)))+loss;
+	fprintf('func: %14.6f\n', f);
     G_norm_0 = 0;
     fprintf('iter        time              obj          |grad|           |gradw| (#nt,#cg)           |gradU| (#nt,#cg)           |gradV| (#nt,#cg)\n');
     for k = 1:max_iter
@@ -47,7 +48,7 @@ end
 function [U, y_tilde, expyy, f, loss, nt_iters, G_norm, total_cg_iters] = update_block(y, X, U, Q, y_tilde, expyy, f, loss, lambda, do_pcond, sub_rate)
     epsilon = 0.8;
     nu = 0.1;
-    max_nt_iter = 100;
+    max_nt_iter = 1;
     min_step_size = 1e-20;
     l = size(X,1);
     G0_norm = 0;
@@ -72,6 +73,7 @@ function [U, y_tilde, expyy, f, loss, nt_iters, G_norm, total_cg_iters] = update
         Delta = (sum(Q'.*(X*S'),2));
         US = sum(sum(U.*S)); SS = sum(sum(S.*S)); GS = sum(sum(G.*S));
         theta = 1;
+		do_line_search = false;
         while (true)
             if (theta < min_step_size)
                 fprintf('Warning: step size is too small in line search. Switch to the next block of variables.\n');
@@ -90,13 +92,17 @@ function [U, y_tilde, expyy, f, loss, nt_iters, G_norm, total_cg_iters] = update
                 break;
             end
             theta = theta*0.5;
+			do_line_search = true;
         end
+		if( do_line_search )
+			fprintf('Do line search, theta: %14.6f\n', theta);
+		end
     end
 end
 
 % See Algorithm 4 in the paper.
 function [S, cg_iters] = pcg(X, Q, G, D, lambda, do_pcond, sub_rate)
-    zeta = 0.3;
+    zeta = 0.1;
     cg_max_iter = 100;
     if (sub_rate < 1)
         l = size(X,1);
@@ -120,8 +126,8 @@ function [S, cg_iters] = pcg(X, Q, G, D, lambda, do_pcond, sub_rate)
     while (gamma > zeta*zeta*G0G0)
         cg_iters = cg_iters+1;
         Dh = M.*d;
-        z = 0.5*sum(Q'.*(X*Dh'),2);
-        Dh = M.*(lambda*Dh+0.5*(1/sub_rate)*Q*sparse([1:l], [1:l], D*z)*X);
+        z = sum(Q'.*(X*Dh'),2);
+        Dh = M.*(lambda*Dh+(1/sub_rate)*Q*sparse([1:l], [1:l], D*z)*X);
         alpha = gamma/sum(sum(d.*Dh));
         s_bar = s_bar+alpha*d;
         r = r-alpha*Dh;

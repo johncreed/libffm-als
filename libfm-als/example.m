@@ -2,16 +2,15 @@
 make;
 
 % set model parameters
-lambda_w = 0.0625; lambda_U = 4; lambda_V = 4; d = 8;
+%lambda_w = 0.0625; lambda_U = 4; lambda_V = 4; d = 8;
+lambda_U = lambda; lambda_V = lambda; lambda_w = 0.0625;
 
 % set training algorithm's parameters
 epsilon = 0.01; do_pcond = false; sub_rate = 1;
 
 % prepare training and test data sets
-%[y,X] = libsvmread('fourclass_scale.tr');
-%[y_test,X_test] = libsvmread('fourclass_scale.te');
-[y,X] = libsvmread('avazu-app.grid.tr.ffm.fm.cvt');
-[y_test,X_test] = libsvmread('avazu-app.grid.va.ffm.fm.cvt');
+[y,X] = libsvmread(tr);
+[y_test,X_test] = libsvmread(te);
 
 n = max(size(X,2),size(X_test,2));
 [i,j,s] = find(X);
